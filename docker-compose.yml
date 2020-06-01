@@ -1,0 +1,51 @@
+version: '2.2'
+
+services:
+
+  collectd:
+    build:
+      context: collectd/
+    volumes:
+      - collectd-volume:/opt/collectd/var/lib/collectd/rrd
+    ports:
+      - "25826:25826/udp"
+      - "8125:8125/udp"
+    networks:
+      - elk
+
+  graphite:
+    build:
+      context: graphite/
+    volumes:
+      - ./graphite/config/carbon.conf:/etc/graphite-statsd/conf/opt/graphite/conf/carbon.conf:ro
+      - ./graphite/config/carbon.conf:/opt/graphite/conf/carbon.conf:ro
+      - graphite-volume:/var/lib/carbon/
+    ports:
+      - "2003:2003/udp"
+      - "8128:8125/udp"
+      - "8089:80"
+      - "8126:8126"
+    networks:
+      - elk
+
+  grafana:
+    build:
+      context: grafana/
+    volumes:
+      - grafana-volume:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - elk
+
+volumes:
+  grafana-volume:
+    driver: local
+  collectd-volume:
+    driver: local
+  graphite-volume:
+    driver: local
+
+networks:
+  elk:
+    driver: bridge
